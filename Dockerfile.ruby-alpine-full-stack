@@ -1,0 +1,29 @@
+FROM ruby:2.3.1-alpine
+MAINTAINER Braidn <me@braidn.com>
+# Env
+ENV REFRESHED_AT 2016-10-20
+ENV REPO_DIR /src/repo
+ENV GEM_HOME /src/gems
+ENV NPM_HOME /src/node_modules
+ENV ENV_FILE /src/repo/.env
+ENV PACKAGE_HOME /src
+ENV BUILD_PACKAGES bash libffi-dev openssl-dev linux-headers zlib-dev readline-dev yaml-dev git curl-dev ruby-dev build-base
+ENV RUBY_PACKAGES ruby-io-console ruby-bundler nodejs libxml2-dev libxslt-dev imagemagick postgresql-dev
+# Build all required packages
+RUN apk update && \
+    apk upgrade && \
+    apk add $BUILD_PACKAGES && \
+    apk add $RUBY_PACKAGES && \
+    rm -rf /var/cache/apk/*
+# Create and switch to repo dir
+RUN mkdir -p $GEM_HOME $REPO_DIR $NPM_HOME
+WORKDIR $REPO_DIR
+# Copy the rest of the app
+ADD . $REPO_DIR
+COPY Gemfile* $REPO_DIR/
+COPY package.json $PACKAGE_HOME
+# Set some defaults for bundler
+ENV BUNDLE_GEMFILE=$REPO_DIR/Gemfile \
+    BUNDLE_JOBS=6 \
+    BUNDLE_PATH=$GEM_HOME \
+    NODE_PATH=$NPM_HOME

@@ -1,0 +1,25 @@
+FROM ruby:2.1-alpine
+
+MAINTAINER me@braidn.com
+REFRESHED_AT 2016-12-28
+
+ENV SRC_DIR /src
+
+RUN set -xe && \
+    apk add --no-cache --virtual .build-deps \
+                                build-base \
+                                libffi-dev \
+                                libxml2-dev \
+                                readline-dev \
+                                yaml-dev \
+                                zlib-dev && \
+    apk del .build-deps
+
+VOLUME $SRC_DIR
+WORKDIR $SRC_DIR
+COPY Gemfile * $SRC_DIR
+
+RUN echo "gem: --no-ri --no-rdoc" > ~/.gemrc && gem install bundler
+RUN bundle install
+
+CMD ['jekyll']
